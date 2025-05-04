@@ -58,6 +58,7 @@
 #ifdef ESP32
 #define FALLBACK_MODULE        WEMOS             // [Module2] Select default module on fast reboot where USER_MODULE is user template
 //#define USER_TEMPLATE "{\"NAME\":\"ESP32-DevKit\",\"GPIO\":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,0,1,1,1,0,0,0,0,1,1,1,1,1,0,0,1],\"FLAG\":0,\"BASE\":1}"  // [Template] Set JSON template
+//#define USER_TEMPLATE "{\"NAME\" : \"M5Stack Core 2\", \"GPIO\" : [ 6210, 1, 1, 1, 6720, 768, 0, 0, 0, 1, 1, 800, 0, 0, 736, 1, 0, 641, 609, 704, 0, 0, 0, 1, 0, 0, 0, 0, 640, 608, 1, 1, 1, 0, 672, 0 ], \"FLAG\" : 0, \"BASE\" : 1}"
 #endif  // ESP32
 
 #define SAVE_DATA              1                 // [SaveData] Save changed parameters to Flash (0 = disable, 1 - 3600 seconds)
@@ -152,7 +153,7 @@
 #define MQTT_CLIENT_ID         "DVES_%06X"       // [MqttClient] Also fall back topic using last 6 characters of MAC address or use "DVES_%12X" for complete MAC address
 
 // -- MQTT - Telemetry ----------------------------
-#define TELE_PERIOD            10               // [TelePeriod] Telemetry (0 = disable, 10 - 3600 seconds)
+#define TELE_PERIOD            60               // [TelePeriod] Telemetry (0 = disable, 10 - 3600 seconds)
 #define TELE_ON_POWER          false             // [SetOption59] send tele/STATE together with stat/RESULT (false = Disable, true = Enable)
 
 // -- MQTT - Domoticz -----------------------------
@@ -641,8 +642,8 @@
 #define I2CDRIVERS_64_95       0xFFFFFFFF          // Enable I2CDriver64 to I2CDriver95
 
 #ifdef USE_I2C
-    //#define USE_DHT20
-    //#define USE_4RELAY
+    #define USE_DHT20
+    #define USE_4RELAY
     //#define USE_ACMEASURE
 //  #define USE_I2C_BUS2                           // Add experimental support for second I2C bus on ESP8266 (+0k6k code)
 //  #define USE_SHT                                // [I2cDriver8] Enable SHT1X sensor (+1k4 code)

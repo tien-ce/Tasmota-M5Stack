@@ -14,7 +14,6 @@ struct LoraSerial_t
 }LoraSerial;
 
 HardwareSerial *mySerial = nullptr;
-
 class Device_info
 {
 public:
@@ -24,6 +23,8 @@ public:
     uint8_t addrLow;  // Địa chỉ thấp
     float longitude;  // Kinh độ
     float latitude;   // Vĩ độ
+    uint8_t target_addrHigh;
+    uint8_t target_addrLow;
     Device_info()
     {
         this->device_name = "";
@@ -32,13 +33,17 @@ public:
     {
         this->device_name = device_name;
     }
-    Device_info(String device_name, uint8_t addr_high,uint8_t addr_low, float longitude, float latitude)
+    Device_info(String device_name, uint8_t addr_high,uint8_t addr_low,
+        uint8_t channel, float longitude, float latitude, uint8_t target_addr_high,uint8_t target_addr_low)
     {
         this->device_name = device_name;
         this->addrHigh = addr_high;
         this->addrLow = addr_low;
+        this->channel = channel;
         this->longitude = longitude;
         this->latitude = latitude;
+        this->target_addrHigh = target_addr_high;
+        this->target_addrLow = target_addr_low;
     }
     void setLoraName(String device_name)
     {
@@ -49,7 +54,91 @@ public:
 StaticJsonDocument<256> Lora_mapping;
 JsonObject Lora_mapping_ojb = Lora_mapping.to<JsonObject>();
 /************************************************************************************* */
-Device_info device_info("Device A",0x12,0x34, 106.76940000, 10.90682000);
+Device_info device_info("Device A",0x12,0x34,23, 106.76940000, 10.90682000,0x12,0x34);
+/*************************************In cấu hình LORA ******************************* */
+void printParameters(struct Configuration configuration) {
+    char logBuf[128];
+    AddLog(LOG_LEVEL_INFO, PSTR("----------------------------------------"));
+    
+    snprintf(logBuf, sizeof(logBuf), "HEAD : %02X %02X %02X", configuration.COMMAND, configuration.STARTING_ADDRESS, configuration.LENGHT);
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    AddLog(LOG_LEVEL_INFO, PSTR(" "));
+    snprintf(logBuf, sizeof(logBuf), "AddH : %02X", configuration.ADDH);
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "AddL : %02X", configuration.ADDL);
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "NetID: %02X", configuration.NETID);
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    AddLog(LOG_LEVEL_INFO, PSTR(" "));
+    snprintf(logBuf, sizeof(logBuf), "Chan : %d -> %s", configuration.CHAN, configuration.getChannelDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    AddLog(LOG_LEVEL_INFO, PSTR(" "));
+    snprintf(logBuf, sizeof(logBuf), "SpeedParityBit     : %d -> %s", configuration.SPED.uartParity, configuration.SPED.getUARTParityDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "SpeedUARTDatte     : %d -> %s", configuration.SPED.uartBaudRate, configuration.SPED.getUARTBaudRateDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "SpeedAirDataRate   : %d -> %s", configuration.SPED.airDataRate, configuration.SPED.getAirDataRateDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    AddLog(LOG_LEVEL_INFO, PSTR(" "));
+    snprintf(logBuf, sizeof(logBuf), "OptionSubPacketSett: %d -> %s", configuration.OPTION.subPacketSetting, configuration.OPTION.getSubPacketSetting().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "OptionTranPower    : %d -> %s", configuration.OPTION.transmissionPower, configuration.OPTION.getTransmissionPowerDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "OptionRSSIAmbientNo: %d -> %s", configuration.OPTION.RSSIAmbientNoise, configuration.OPTION.getRSSIAmbientNoiseEnable().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    AddLog(LOG_LEVEL_INFO, PSTR(" "));
+    snprintf(logBuf, sizeof(logBuf), "TransModeWORPeriod : %d -> %s", configuration.TRANSMISSION_MODE.WORPeriod, configuration.TRANSMISSION_MODE.getWORPeriodByParamsDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "TransModeTransContr: %d -> %s", configuration.TRANSMISSION_MODE.WORTransceiverControl, configuration.TRANSMISSION_MODE.getWORTransceiverControlDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "TransModeEnableLBT : %d -> %s", configuration.TRANSMISSION_MODE.enableLBT, configuration.TRANSMISSION_MODE.getLBTEnableByteDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "TransModeEnableRSSI: %d -> %s", configuration.TRANSMISSION_MODE.enableRSSI, configuration.TRANSMISSION_MODE.getRSSIEnableByteDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "TransModeEnabRepeat: %d -> %s", configuration.TRANSMISSION_MODE.enableRepeater, configuration.TRANSMISSION_MODE.getRepeaterModeEnableByteDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "TransModeFixedTrans: %d -> %s", configuration.TRANSMISSION_MODE.fixedTransmission, configuration.TRANSMISSION_MODE.getFixedTransmissionDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    AddLog(LOG_LEVEL_INFO, PSTR("----------------------------------------"));
+}
+
+void printModuleInformation(struct ModuleInformation moduleInformation) {
+    char logBuf[128];
+    AddLog(LOG_LEVEL_INFO, PSTR("----------------------------------------"));
+
+    snprintf(logBuf, sizeof(logBuf), "HEAD: %02X %02X %d", moduleInformation.COMMAND, moduleInformation.STARTING_ADDRESS, moduleInformation.LENGHT);
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "Model no.: %02X", moduleInformation.model);
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "Version  : %02X", moduleInformation.version);
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    snprintf(logBuf, sizeof(logBuf), "Features : %02X", moduleInformation.features);
+    AddLog(LOG_LEVEL_INFO, PSTR("%s"), logBuf);
+
+    AddLog(LOG_LEVEL_INFO, PSTR("----------------------------------------"));
+}
+
+/********************************************************************************************** */
 void LoraSerialInit(void)
 {
     LoraSerial.active = false;
@@ -74,7 +163,7 @@ void LoraSerialInit(void)
     if(LoraSerial.active)
     {
         mySerial = new HardwareSerial(1); // Use UART2
-        mySerial->begin(9600, SERIAL_8N1, LoraSerial.tx, LoraSerial.rx);
+        // mySerial->begin(9600, SERIAL_8N1, LoraSerial.tx, LoraSerial.rx);
         String mac_str = TasmotaGlobal.mqtt_client; // 		DVES_18E8AC
         // mac_str = WiFi.macAddress(); // "AB:CD:EF:GH:JK:LM"
         int first = mac_str.lastIndexOf("_");             // At _18....
@@ -84,10 +173,44 @@ void LoraSerialInit(void)
         LoraSerial.LoraSerial = new LoRa_E22(LoraSerial.tx, LoraSerial.rx, mySerial, UART_BPS_RATE_9600, SERIAL_8N1);
         ResponseStatus rs;
         bool check = LoraSerial.LoraSerial->begin();
-
         if (check)
         {
             //LoraSerial.active = true;
+            ResponseStructContainer c = LoraSerial.LoraSerial->getConfiguration();
+            Configuration configuration = *(Configuration*) c.data;
+            AddLog(LOG_LEVEL_INFO, "%s", c.status.getResponseDescription().c_str());
+
+            configuration.ADDH = 0x12;
+            configuration.ADDL = 0x34;
+            configuration.NETID = 0x00;
+            configuration.CHAN = 23;
+            configuration.SPED.uartBaudRate = UART_BPS_9600;
+            configuration.SPED.airDataRate = AIR_DATA_RATE_100_96;
+            configuration.SPED.uartParity = MODE_00_8N1;
+            configuration.OPTION.subPacketSetting = SPS_240_00;
+            configuration.OPTION.RSSIAmbientNoise = RSSI_AMBIENT_NOISE_DISABLED;
+            configuration.OPTION.transmissionPower = POWER_10;
+            configuration.TRANSMISSION_MODE.enableRSSI = RSSI_DISABLED;
+            configuration.TRANSMISSION_MODE.fixedTransmission = FT_FIXED_TRANSMISSION;
+            configuration.TRANSMISSION_MODE.enableRepeater = REPEATER_DISABLED;
+            configuration.TRANSMISSION_MODE.enableLBT = LBT_DISABLED;
+            configuration.TRANSMISSION_MODE.WORTransceiverControl = WOR_TRANSMITTER;
+            configuration.TRANSMISSION_MODE.WORPeriod = WOR_2500_100;
+            configuration.CRYPT.CRYPT_H = 0x00;
+            configuration.CRYPT.CRYPT_L = 0x00;
+            rs = LoraSerial.LoraSerial->setConfiguration(configuration,WRITE_CFG_PWR_DWN_SAVE);
+            AddLog(LOG_LEVEL_INFO, "%s", c.status.getResponseDescription().c_str());
+
+            c = LoraSerial.LoraSerial->getConfiguration();
+            // It's important get configuration pointer before all other operation
+            configuration = *(Configuration*) c.data;
+            AddLog(LOG_LEVEL_INFO, "%s", c.status.getResponseDescription().c_str());
+            if(c.status.code == SUCCESS){
+                printParameters(configuration);
+            }
+            else{
+                AddLog(LOG_LEVEL_INFO,PSTR("ERROR TO READ CONFIGURATION"));
+            }
             TasmotaGlobal.LoraSerial_enabled = true;
             AddLog(LOG_LEVEL_INFO, "LoraSerial: Init OK");
         }
@@ -101,25 +224,145 @@ void LoraSerialInit(void)
             AddLog(LOG_LEVEL_ERROR, PSTR("LoraSerial: Init failed %s"), rs.getResponseDescription().c_str());
         }
     }
+
 }
 
 #define D_CMND_SEND_LORA_SERIAL "SendLora"
 #define D_CMND_SEND_LORA_TELEMETRY "SendLoraTelemetry"
 #define D_CMND_SEND_Lora_ATTRIBUTE "SendLoraAttribute"
-#define D_CMND_PRINT_MAPPING_Lora "PrintMappingLora"
+#define D_CMND_PRINT_MAPPING_Lora "PrintLoraMapping"
+#define D_CMND_SET_CONF_Lora "SetLoraConf"
+#define D_CMND_PRINT_CONF_Lora "PrintLoraConf"
+#define D_CMND_KEY_CONF_Lora "PrintKeyLoraConf"
 const char kLoraSerialCommands[] PROGMEM = "|"
     D_CMND_SEND_LORA_SERIAL "|"
     D_CMND_SEND_LORA_TELEMETRY"|"
     D_CMND_SEND_Lora_ATTRIBUTE"|"
-    D_CMND_PRINT_MAPPING_Lora;
+    D_CMND_PRINT_MAPPING_Lora "|"
+    D_CMND_PRINT_CONF_Lora "|"
+    D_CMND_SET_CONF_Lora"|"
+    D_CMND_KEY_CONF_Lora;
 
 void (* const LoraSerialCommand[])(void) PROGMEM = {
     &CmndSendLora,
     &CmndSendLoraTelemetry,
     &CmndSendLoraAttribute,
-    &CmndPrintMapLora
+    &CmndPrintMapLora,
+    &CmndPrintConfLora,
+    &CmndSetConfLora,
+    &CmndPrintKeyLoraConf
 };
+void CmndPrintKeyLoraConf(void) {
+    AddLog(LOG_LEVEL_INFO, PSTR("------ USE THESE KEYS FOR SET CONF ------"));
 
+    AddLog(LOG_LEVEL_INFO, PSTR("ADDH               ---> Address High Byte"));
+    AddLog(LOG_LEVEL_INFO, PSTR("ADDL               ---> Address Low Byte"));
+    AddLog(LOG_LEVEL_INFO, PSTR("TAR_ADDH           ---> Target Address High"));
+    AddLog(LOG_LEVEL_INFO, PSTR("TAR_ADDL           ---> Target Address Low"));
+    AddLog(LOG_LEVEL_INFO, PSTR("NETID              ---> Network ID"));
+    AddLog(LOG_LEVEL_INFO, PSTR("CHAN               ---> Channel (0-83)"));
+
+    AddLog(LOG_LEVEL_INFO, PSTR("uartBaudRate       ---> UART Baud Rate (e.g., 9600, 115200)"));
+    AddLog(LOG_LEVEL_INFO, PSTR("airDataRate        ---> Air Data Rate"));
+    AddLog(LOG_LEVEL_INFO, PSTR("uartParity         ---> UART Parity Mode (e.g., 8N1)"));
+
+    AddLog(LOG_LEVEL_INFO, PSTR("subPacketSetting   ---> Sub-Packet Size Setting"));
+    AddLog(LOG_LEVEL_INFO, PSTR("RSSIAmbientNoise   ---> Enable/Disable RSSI Ambient Noise"));
+    AddLog(LOG_LEVEL_INFO, PSTR("transmissionPower  ---> Transmission Power Level"));
+
+    AddLog(LOG_LEVEL_INFO, PSTR("enableRSSI         ---> Enable RSSI Reporting"));
+    AddLog(LOG_LEVEL_INFO, PSTR("fixedTransmission  ---> Fixed Transmission Mode"));
+    AddLog(LOG_LEVEL_INFO, PSTR("enableRepeater     ---> Enable Repeater Function"));
+    AddLog(LOG_LEVEL_INFO, PSTR("enableLBT          ---> Enable Listen Before Talk"));
+    AddLog(LOG_LEVEL_INFO, PSTR("WORTransceiverControl ---> WOR Mode: Transmitter/Receiver"));
+    AddLog(LOG_LEVEL_INFO, PSTR("WORPeriod          ---> WOR Wake Period"));
+
+    AddLog(LOG_LEVEL_INFO, PSTR("CRYPT_H            ---> Encryption Key High Byte"));
+    AddLog(LOG_LEVEL_INFO, PSTR("CRYPT_L            ---> Encryption Key Low Byte"));
+
+    ResponseCmndDone();
+}
+
+void CmndPrintConfLora(void){
+    ResponseStructContainer c = LoraSerial.LoraSerial->getConfiguration();
+    Configuration configuration = *(Configuration*) c.data;
+    AddLog(LOG_LEVEL_INFO, "%s", c.status.getResponseDescription().c_str());
+
+    if(c.status.code != SUCCESS){
+        AddLog(LOG_LEVEL_INFO,PSTR("ERROR READ CONFIGTION"));
+        ResponseCmndDone();
+        return;
+    }
+    printParameters(configuration);
+    ResponseCmndDone();
+}
+void CmndSetConfLora(void) {
+    if (XdrvMailbox.data_len == 0) {
+        AddLog(LOG_LEVEL_INFO, PSTR("No data for config"));
+        ResponseCmndDone();
+        return;
+    }
+    ResponseStructContainer c;
+	c = LoraSerial.LoraSerial->getConfiguration();
+	// It's important get configuration pointer before all other operation
+	Configuration configuration = *(Configuration*) c.data;
+    StaticJsonDocument<256> mailboxDoc;
+    DeserializationError error = deserializeJson(mailboxDoc, XdrvMailbox.data);
+    if (error) {
+        AddLog(LOG_LEVEL_INFO, PSTR("ERROR TO PARSE JSON"));
+        ResponseCmndDone();
+        return;
+    }
+
+    if (mailboxDoc.containsKey("ADDH")) 
+    {
+        configuration.ADDH = mailboxDoc["ADDH"];
+        device_info.addrHigh =  mailboxDoc["ADDH"];
+    }
+    if (mailboxDoc.containsKey("ADDL")){
+        configuration.ADDL = mailboxDoc["ADDL"];
+        device_info.addrLow = mailboxDoc["ADDL"];
+    }
+    if(mailboxDoc.containsKey("TAR_ADDH")) device_info.target_addrHigh = mailboxDoc["TAR_ADDH"];
+    if(mailboxDoc.containsKey("TAR_ADDL")) device_info.target_addrHigh = mailboxDoc["TAR_ADDL"];
+    if (mailboxDoc.containsKey("NETID")) configuration.NETID = mailboxDoc["NETID"];
+    if (mailboxDoc.containsKey("CHAN")) configuration.CHAN = mailboxDoc["CHAN"];
+
+    if (mailboxDoc.containsKey("uartBaudRate")) {
+        uint8_t baud = mailboxDoc["uartBaudRate"];
+        if (baud == UART_BPS_1200 || baud == UART_BPS_2400 || baud == UART_BPS_4800 ||
+            baud == UART_BPS_9600 || baud == UART_BPS_19200 || baud == UART_BPS_38400 ||
+            baud == UART_BPS_57600 || baud == UART_BPS_115200) {
+            configuration.SPED.uartBaudRate = baud;
+        }
+    }
+
+    if (mailboxDoc.containsKey("airDataRate")) configuration.SPED.airDataRate = mailboxDoc["airDataRate"];
+    if (mailboxDoc.containsKey("uartParity")) configuration.SPED.uartParity = mailboxDoc["uartParity"];
+    if (mailboxDoc.containsKey("subPacketSetting")) configuration.OPTION.subPacketSetting = mailboxDoc["subPacketSetting"];
+    if (mailboxDoc.containsKey("RSSIAmbientNoise")) configuration.OPTION.RSSIAmbientNoise = mailboxDoc["RSSIAmbientNoise"];
+    if (mailboxDoc.containsKey("transmissionPower")) configuration.OPTION.transmissionPower = mailboxDoc["transmissionPower"];
+
+    if (mailboxDoc.containsKey("enableRSSI")) configuration.TRANSMISSION_MODE.enableRSSI = mailboxDoc["enableRSSI"];
+    if (mailboxDoc.containsKey("fixedTransmission")) configuration.TRANSMISSION_MODE.fixedTransmission = mailboxDoc["fixedTransmission"];
+    if (mailboxDoc.containsKey("enableRepeater")) configuration.TRANSMISSION_MODE.enableRepeater = mailboxDoc["enableRepeater"];
+    if (mailboxDoc.containsKey("enableLBT")) configuration.TRANSMISSION_MODE.enableLBT = mailboxDoc["enableLBT"];
+    if (mailboxDoc.containsKey("WORTransceiverControl")) configuration.TRANSMISSION_MODE.WORTransceiverControl = mailboxDoc["WORTransceiverControl"];
+    if (mailboxDoc.containsKey("WORPeriod")) configuration.TRANSMISSION_MODE.WORPeriod = mailboxDoc["WORPeriod"];
+
+    if (mailboxDoc.containsKey("CRYPT_H")) configuration.CRYPT.CRYPT_H = mailboxDoc["CRYPT_H"];
+    if (mailboxDoc.containsKey("CRYPT_L")) configuration.CRYPT.CRYPT_L = mailboxDoc["CRYPT_L"];
+	ResponseStatus rs = LoraSerial.LoraSerial->setConfiguration(configuration, WRITE_CFG_PWR_DWN_SAVE);
+	AddLog(LOG_LEVEL_INFO, "%s", c.status.getResponseDescription().c_str());
+
+    if(c.status.code== SUCCESS){
+        AddLog(LOG_LEVEL_INFO, PSTR("Lora config updated"));
+    }
+    else{
+        AddLog(LOG_LEVEL_INFO, PSTR("ERROR TO SET CONF LORA"));
+    }
+    ResponseCmndDone();
+}
 void CmndSendLoraTelemetry(void)
 {
     if (XdrvMailbox.data_len == 0)
@@ -149,9 +392,10 @@ void CmndSendLoraTelemetry(void)
     serializeJson(doc, json_string);
     int len = json_string.length();
     ResponseStatus rs = LoraSerial.LoraSerial->sendMessage(json_string.c_str(), len);
-    AddLog(LOG_LEVEL_INFO, PSTR("LoRa Send: %s, with len is %d"), rs.getResponseDescription().c_str(), len);
+    AddLog(LOG_LEVEL_INFO, PSTR("LoRa Send: %s : %s, with len is %d"), rs.getResponseDescription().c_str(),json_string, len);
     ResponseCmndDone();
 }
+
 void CmndPrintMapLora(void)
 {
     AddLog(LOG_LEVEL_INFO, PSTR("===== Lora MAPPING ====="));
@@ -170,12 +414,14 @@ void CmndSendLoraAttribute(void)
     JsonObject deviceA = doc.createNestedObject(device_info.device_name);
     deviceA["addrHigh"] = device_info.addrHigh;
     deviceA["addrLow"] = device_info.addrLow;
+    deviceA["channel"] = device_info.channel;
     deviceA["longitude"] = device_info.longitude;
     deviceA["latitude"] = device_info.latitude;
     String json_string;
     serializeJson(doc, json_string);
     AddLog(LOG_LEVEL_INFO, PSTR("Lora Send: %s"), json_string.c_str());
-    LoraSerial.LoraSerial->sendFixedMessage(device_info.addrHigh,device_info.addrLow,device_info.channel,json_string);
+    ResponseStatus rs = LoraSerial.LoraSerial->sendFixedMessage(device_info.target_addrHigh,device_info.target_addrLow,device_info.channel,json_string);
+    AddLog(LOG_LEVEL_INFO, rs.getResponseDescription().c_str());
     ResponseCmndDone();
 }
 void CmndSendLora(void)
@@ -195,6 +441,8 @@ void CmndSendLora(void)
 
 void LoraSerial_COLLECT_DATA()
 {
+    int ran = random(0,2000);
+    delay(ran);
     ResponseClear();
     XsnsCall(FUNC_JSON_APPEND);
     const char *raw = ResponseData();
@@ -238,7 +486,9 @@ void LoraSerial_COLLECT_DATA()
     }
     String final_payload;
     serializeJson(out_doc, final_payload);
-    LoraSerial.LoraSerial->sendFixedMessage(device_info.addrHigh,device_info.addrLow,device_info.channel,final_payload);
+    ResponseStatus rs = LoraSerial.LoraSerial->sendFixedMessage(device_info.addrHigh,device_info.addrLow,device_info.channel,final_payload);
+    AddLog(LOG_LEVEL_INFO, rs.getResponseDescription().c_str());
+    AddLog(LOG_LEVEL_INFO, "Lora Send: %s",final_payload);
 }
 
 void LoraSerialProcessing()

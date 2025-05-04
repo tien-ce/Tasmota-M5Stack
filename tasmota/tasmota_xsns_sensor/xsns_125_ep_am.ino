@@ -105,11 +105,11 @@ void EPAMReadData(void)
                 {
                     case 0:
                         EPAM.PM2_5 = ((buffer[3] << 8) | buffer[4]);
-                        AddLog(LOG_LEVEL_INFO,PSTR("Value of PM2.5: %.1f"),EPAM.PM2_5);
+                        //AddLog(LOG_LEVEL_INFO,PSTR("Value of PM2.5: %.1f"),EPAM.PM2_5);
                         break;
                     case 1:
                         EPAM.PM10 = ((buffer[3] << 8) | buffer[4]);
-                        AddLog(LOG_LEVEL_INFO,PSTR("Value of PM10.0: %.1f"), EPAM.PM10);
+                        //AddLog(LOG_LEVEL_INFO,PSTR("Value of PM10.0: %.1f"), EPAM.PM10);
                         //advanceSensorID();
                         break;
                 }

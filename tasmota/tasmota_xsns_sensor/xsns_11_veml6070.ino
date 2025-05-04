@@ -87,7 +87,7 @@
 */
 
 #ifdef USE_I2C
-#ifdef USE_VEML6070
+#ifdef USE_VEML6070_1
 /*********************************************************************************************\
  * VEML6070 - Ultra Violet Light Intensity (UV-A, 100% output by 255nm)
  *

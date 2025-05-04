@@ -17,7 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef USE_I2C
+#ifdef USE_I2C_1
 #if defined(USE_MPU6886) || defined(USE_MPU_ACCEL)    // USE_MPU6886 deprecated, prefer USE_MPU_ACCEL
 
 #include <MPU_accel.h>

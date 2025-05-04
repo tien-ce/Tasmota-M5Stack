@@ -33,8 +33,8 @@ bool EPCOisConnected()
         delay(1);
         if(RS485.Rs485Modbus -> ReceiveReady()) break;
     }
+    if(TimeReached(wait_until) && !RS485.Rs485Modbus -> ReceiveReady()) return false;
  */
-    //if(TimeReached(wait_until) && !RS485.Rs485Modbus -> ReceiveReady()) return false;
 
     uint8_t buffer[8];
     uint8_t error = RS485.Rs485Modbus -> ReceiveBuffer(buffer, 8);

@@ -70,11 +70,9 @@ struct SoilMoisture
     bool valid = false;
 }SM_sensor;
 
-#define SM_ADDRESS_ID 0x11
+#define SM_ADDRESS_ID 0x1E
 #define SM_ADDRESS_CHECK 0x0100
 #define SM_FUNCTION_CODE 0x03 
-#define SM_TIMEOUT 150
-
 
 bool SMisConnected()
 {
@@ -120,7 +118,7 @@ void SMInit(void)
 
 
 
-void SMreadData(void)
+void SMReadData(void)
 {
     
     if(SM_sensor.valid == false) return;
@@ -186,9 +184,6 @@ void SMreadData(void)
             RS485.lastRequestTime = 0;
         }
     }
-    
-
-   
 }
 
 const char HTTP_SNS_SM_PH[]             PROGMEM = "{s} SOIL MOISTURE PH Values {m} %.1f pH";
@@ -250,7 +245,7 @@ bool Xsns120(uint32_t function)
         switch (function)
         {
         case FUNC_EVERY_250_MSECOND:
-            SMreadData();
+            SMReadData();
             break;
         case FUNC_JSON_APPEND:
             SMShow(1);

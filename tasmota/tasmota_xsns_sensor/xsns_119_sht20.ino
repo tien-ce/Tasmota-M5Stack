@@ -39,8 +39,7 @@ struct SHT20
 
 bool SHT20isConnected()
 {
-    if (!RS485.active)
-        return false; // Return early if RS485 is not active
+    if (!RS485.active) return false; // Return early if RS485 is not active
 
     RS485.Rs485Modbus->Send(SHT20_ADDRESS_ID, 0x03, SHT20_ADDRESS_CHECK , 0x01);
 
