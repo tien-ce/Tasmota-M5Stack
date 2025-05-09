@@ -33,6 +33,11 @@ public:
     {
         this->device_name = device_name;
     }
+    Device_info( uint8_t addr_high,uint8_t addr_low)
+    {
+        this->addrHigh = addr_high;
+        this->addrLow = addr_low;
+    }
     Device_info(String device_name, uint8_t addr_high,uint8_t addr_low,
         uint8_t channel, float longitude, float latitude, uint8_t target_addr_high,uint8_t target_addr_low)
     {
@@ -180,8 +185,8 @@ void LoraSerialInit(void)
             Configuration configuration = *(Configuration*) c.data;
             AddLog(LOG_LEVEL_INFO, "%s", c.status.getResponseDescription().c_str());
 
-            configuration.ADDH = 0x12;
-            configuration.ADDL = 0x34;
+            // configuration.ADDH = 0x12;
+            // configuration.ADDL = 0x34;
             configuration.NETID = 0x00;
             configuration.CHAN = 23;
             configuration.SPED.uartBaudRate = UART_BPS_9600;
@@ -207,6 +212,8 @@ void LoraSerialInit(void)
             AddLog(LOG_LEVEL_INFO, "%s", c.status.getResponseDescription().c_str());
             if(c.status.code == SUCCESS){
                 printParameters(configuration);
+                device_info.addrHigh = configuration.ADDH;
+                device_info.addrLow = configuration.ADDL;
             }
             else{
                 AddLog(LOG_LEVEL_INFO,PSTR("ERROR TO READ CONFIGURATION"));
@@ -441,8 +448,7 @@ void CmndSendLora(void)
 
 void LoraSerial_COLLECT_DATA()
 {
-    int ran = random(0,2000);
-    delay(ran);
+
     ResponseClear();
     XsnsCall(FUNC_JSON_APPEND);
     const char *raw = ResponseData();
@@ -452,8 +458,13 @@ void LoraSerial_COLLECT_DATA()
     {
         fixed = fixed.substring(1); // Bỏ dấu phẩy đầu
     }
+    if(fixed == ""){
+        AddLog(LOG_LEVEL_INFO,PSTR("No data to tran"));
+        return;
+    }
     fixed = "{" + fixed + "}"; // Bọc thành JSON hoàn chỉnh
-
+    int ran = random(0,2000);
+    delay(ran);
     AddLog(LOG_LEVEL_INFO, PSTR("Sensor JSON fixed: %s"), fixed.c_str());
 
     // Parse JSON
@@ -488,7 +499,7 @@ void LoraSerial_COLLECT_DATA()
     serializeJson(out_doc, final_payload);
     ResponseStatus rs = LoraSerial.LoraSerial->sendFixedMessage(device_info.addrHigh,device_info.addrLow,device_info.channel,final_payload);
     AddLog(LOG_LEVEL_INFO, rs.getResponseDescription().c_str());
-    AddLog(LOG_LEVEL_INFO, "Lora Send: %s",final_payload);
+    AddLog(LOG_LEVEL_INFO, "Lora Send: %s",final_payload.c_str());
 }
 
 void LoraSerialProcessing()

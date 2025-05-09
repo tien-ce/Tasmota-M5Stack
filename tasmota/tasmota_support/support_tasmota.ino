@@ -1158,7 +1158,7 @@ void PerformEverySecond(void)
       if (TasmotaGlobal.seriallog_level) {
         AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_APPLICATION D_SERIAL_LOGGING_DISABLED));
       }
-      //TasmotaGlobal.seriallog_level = 0;
+      TasmotaGlobal.seriallog_level = 0;
     }
   }
 
