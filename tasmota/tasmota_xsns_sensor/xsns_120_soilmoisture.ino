@@ -77,7 +77,6 @@ struct SoilMoisture
 bool SMisConnected()
 {
     if(!RS485.active) return false;
-
     RS485.Rs485Modbus->Send(SM_ADDRESS_ID, SM_FUNCTION_CODE, (0x01 << 8 ) | 0x00 , 0x01);
     //uint32_t start_time = millis();
    
